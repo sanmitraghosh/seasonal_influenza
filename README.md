@@ -8,7 +8,7 @@ Other than the normal scientific python stack to use this library one needs to i
 I recommend using this library within a virtual environment such as one provided by Anaconda. 
 Install Pybind:
 `conda install -c conda-forge pybind11 `
-Since Eigen is header only thus it is easy to install (see documentaion [http://eigen.tuxfamily.org/index.php?title=Main_Page#Download](here) )
+Since Eigen is header only thus it is easy to install (see documentaion [here](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download))
 
 To link the model(s) written in C++ and the MCMC code written in Python you have to appropriately modify the `setup.py` file in the `CPP` directory.
 # Running the code
