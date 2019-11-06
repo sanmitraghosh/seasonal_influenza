@@ -6,6 +6,8 @@ import sys
 import setuptools
 import pybind11
 
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+
 class get_pybind_include(object):
 
     def __init__(self, user=False):
@@ -23,7 +25,7 @@ ext_modules = [
         ['ICUsim.cpp'],
         include_dirs=[get_pybind_include(), 
         get_pybind_include(user=True),
-	"/scratch/sanmitra/test_sanmitra/eigen3"],
+        os.path.join(os.path.dirname(BASE_DIR), 'eigen'],
     language='c++',
     extra_compile_args = cpp_args,
     ),
@@ -32,7 +34,7 @@ ext_modules = [
         ['ICUHsim.cpp'],
         include_dirs=[get_pybind_include(), 
         get_pybind_include(user=True),
-	"/scratch/sanmitra/test_sanmitra/eigen3"],
+        os.path.join(os.path.dirname(BASE_DIR), 'eigen'],
     language='c++',
     extra_compile_args = cpp_args,
     ),
