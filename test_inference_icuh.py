@@ -22,10 +22,10 @@ from util.diagnostics import effective_sample_size
 
 Transform = True
 Hospitalisation = True
-iterations = 50000
+iterations = 100000
 comp_iterations = 5000
-burnin = 20000
-thin = 10
+burnin = 40000
+thin = 30
 
 Data = np.loadtxt('./fake_data/ICUsimData.txt', dtype=int)
 
@@ -40,8 +40,8 @@ sampler = AdaptiveMetropolis(logP, mean_est=X0, cov_est=cov, tune_interval = 1)
 MCMCsampler = MCMC(sampler, logP, X0, iterations)
 trace = MCMCsampler.run()[0]
 
-#param_filename = './results/icuh_amgs.p'
-#pickle.dump(trace, open(param_filename, 'wb'))
+param_filename = './results/icuh_amgs_ino_priors.p'
+pickle.dump(trace, open(param_filename, 'wb'))
 
 trace_post_burn = trace[burnin:,:]
 py_thinned_trace_amgs = trace_post_burn[::thin,:]
@@ -66,13 +66,17 @@ rwm_ess = effective_sample_size(rwmtrace_post_burn)
 sampler_kernel = GaussianKernel(sigma=1.5)
 sampler = KameleonMetropolis(logP, sampler_kernel, X0)
 MCMCsampler = MCMC(sampler, logP, X0, iterations) 
-rwmtrace = MCMCsampler.run()[0]
-rwmtrace_post_burn = rwmtrace[burnin:,:]
-py_thinned_trace_rwm = rwmtrace_post_burn[::thin,:]
-rwm_ess = effective_sample_size(rwmtrace_post_burn)
+kamtrace = MCMCsampler.run()[0]
+
+param_filename = './results/icuh_kam_ino_priors.p'
+pickle.dump(kamtrace, open(param_filename, 'wb'))
+
+kamtrace_post_burn = kamtrace[burnin:,:]
+py_thinned_trace_kam = kamtrace_post_burn[::thin,:]
+kam_ess = effective_sample_size(py_thinned_trace_kam)
 
 print('ESS AMGS: ', amgs_ess)
-print('ESS RWM: ', rwm_ess)
+print('ESS KAM: ', kam_ess)
 sns.set_context("paper", font_scale=1)
 sns.set(rc={"figure.figsize":(8,6),"font.size":10,"axes.titlesize":20,"axes.labelsize":17,
            "xtick.labelsize":6, "ytick.labelsize":6},style="white")
@@ -84,7 +88,7 @@ for i, p in enumerate(param_names):
         plt.subplot(8, 2, 1 + 2 * i)
         plt.ylabel('Frequency')
         sns.kdeplot(py_thinned_trace_amgs[:, i], color='lightseagreen', legend=True, label='AMGS')
-        sns.kdeplot(py_thinned_trace_rwm[:, i], color='blue', legend=True, label='RWM')
+        sns.kdeplot(py_thinned_trace_kam[:, i], color='blue', legend=True, label='KAM')
         plt.axvline(T_lines[i], linewidth=2.5, color='black')
         if i==0:
                 plt.legend()
@@ -93,12 +97,12 @@ for i, p in enumerate(param_names):
         plt.subplot(8, 2, 2 + 2 * i)
         plt.ylabel(p, fontsize=20)  
         plt.plot(py_thinned_trace_amgs[:, i], alpha=0.5, color='lightseagreen')
-        plt.plot(py_thinned_trace_rwm[:, i], alpha=0.5, color='blue')
+        plt.plot(py_thinned_trace_kam[:, i], alpha=0.5, color='blue')
         
 
 plt.show()
 
-pair_pd = pd.DataFrame(data=py_thinned_trace_rwm, index=range(len(py_thinned_trace_rwm )), columns=param_names)
+pair_pd = pd.DataFrame(data=py_thinned_trace_kam, index=range(len(py_thinned_trace_kam )), columns=param_names)
 pair_pd.head()
 
 
