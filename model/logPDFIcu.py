@@ -60,7 +60,7 @@ class LogPosterior(object):
                 icu_sim *= self._icu_pop
                 hosp_sim *= self._hosp_pop
             """
-            _etaH, _etaIC = _param[5], _param[-1]
+            _etaH, _etaIC = _param[7], _param[5]
 
             if simulate:
 
