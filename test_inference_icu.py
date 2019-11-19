@@ -25,7 +25,7 @@ comp_iterations = 10000
 burnin = 40000
 thin = 30
 
-Data = np.loadtxt('./fake_data/sim_icu_data.txt', dtype=int)
+Data = np.loadtxt('data/2017_18.csv', dtype=int)
 
 logP = LogPosterior(Data, Transform, Hospitalisation)
 start = [0.16, 0.56, 0.0000081, -0.001, 0.00078, 10]
