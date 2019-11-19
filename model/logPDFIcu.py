@@ -26,7 +26,7 @@ class LogPosterior(object):
             self.n_params = 6
         self._hospital = hospital
         self._realdata = realdata
-        self._population = 55268100
+        self._population = 55_977_178
         self._transform = transform
 
         ### Currently ignore this bit as detection probs are hardcoded in C++

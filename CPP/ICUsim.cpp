@@ -45,16 +45,13 @@ std::vector<double> Modelsim(py::array_t<double> THETA){
   double begin   = 0;          // day of the begin of the epidemic
   double end     = 231;        // day of the end of the epidemic
   double dt      = 1/spd;      // time increment
-  double N       = 55268100;   // population size
+  double N       = 55977178;   // population size
   double sgm     = 1;          // rate of moving E1->E2; E2->I1
   double gmm     = 0.52;       // rate of moving I1->I2; I2->r
 
-  std::vector<double> zetat= { 0.89, 0.89, 0.89, 0.89, 0.89, 0.89,
-                         0.83, 0.75, 0.83, 0.89, 0.89, 0.89,
-                         0.89, 0.89, 0.89, 0.89, 0.89, 0.89,
-                         0.89, 0.89, 0.89, 0.89, 0.89, 0.89,
-                         0.89, 0.89, 0.88, 0.8, 0.74, 0.89,
-                         0.89, 0.86, 0.74} ;  // vector of the detections of IC
+  std::vector<double> zetat= {0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.9,
+	  0.76,0.89,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.91,
+	  0.92,0.92,0.91,0.9,0.86,0.72,0.92,0.92,0.89,0.73} ;  // vector of the detections of IC
   std::vector<double> fEtoIC= {0.811443284,0.151835341,0.025467901,
                          0.006698405,0.002425462,0.001061865,
                          0.000524648,0.000282547,0.000162348,
