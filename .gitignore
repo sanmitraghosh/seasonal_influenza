@@ -3,3 +3,6 @@
 .vscode
 results
 *.swp
+
+data/**
+!data/example.csv
