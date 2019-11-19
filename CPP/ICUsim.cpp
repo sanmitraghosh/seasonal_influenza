@@ -1,7 +1,9 @@
+/*
 #include <boost/math/distributions/negative_binomial.hpp>
   // for negative_binomial_distribution
 using boost::math::negative_binomial; // typedef provides default type is double.
 using  ::boost::math::pdf; // Probability mass function.
+*/
 #include <iostream>
 #include <vector>
 #include <unordered_set>
