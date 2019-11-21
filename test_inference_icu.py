@@ -14,7 +14,6 @@ import scipy.stats as stats
 from model.logPDFIcu import LogPosterior
 from samplers.adaptiveMetropolis import AdaptiveMetropolis
 from samplers.compwise_adapt_mcmc import CompWiseMCMC
-from samplers.rwm_mcmc import RandomWalkMCMC
 from samplers.block_mcmc import MCMC
 from util.diagnostics import effective_sample_size
 
@@ -59,34 +58,8 @@ py_thinned_trace_amgs = trace_post_burn[::thin,:]
 amgs_ess = effective_sample_size(py_thinned_trace_amgs)
 
 
-# Now run the rwm sapler, with covariance initialised by compwise run
-MCMCsampler = CompWiseMCMC(logP, X0, Init_scale, comp_iterations)
-start_rwm = time.time()
-comptrace = MCMCsampler.run()
-if  Transform:
-        cov = np.cov(comptrace[2].T)
-        X0 = comptrace[2].mean(axis=0)
-        MCMCsampler = RandomWalkMCMC(logP, cov, X0, iterations)
-        rwmtrace = MCMCsampler.run()[0]
-else:
-        cov = np.cov(comptrace[0].T)
-        X0 = comptrace[0].mean(axis=0)
-        MCMCsampler = RandomWalkMCMC(logP, cov, X0, iterations)
-        rwmtrace = MCMCsampler.run()
-end_rwm = time.time()
-
-
-param_filename = './results/icu_rwm.p'
-pickle.dump(rwmtrace, open(param_filename, 'wb'))
-rwmtrace_post_burn = rwmtrace[burnin:,:]
-
-
-py_thinned_trace_rwm = rwmtrace_post_burn[::thin,:]
-rwm_ess = effective_sample_size(rwmtrace_post_burn)
 print('ESS AMGS: ', amgs_ess)
-print('ESS RWM: ', rwm_ess)
 print('AMGS time taken: ', end_amgs - start_amgs)
-print('RWM time taken: ', end_rwm - start_rwm)
 sns.set_context("paper", font_scale=1)
 sns.set(rc={"figure.figsize":(8,6),"font.size":10,"axes.titlesize":20,"axes.labelsize":17,
            "xtick.labelsize":6, "ytick.labelsize":6},style="white")
@@ -98,7 +71,6 @@ for i, p in enumerate(param_names):
         plt.subplot(6, 2, 1 + 2 * i)
         plt.ylabel('Frequency')
         sns.kdeplot(py_thinned_trace_amgs[:, i], color='lightseagreen', legend=True, label='AMGS')
-        sns.kdeplot(py_thinned_trace_rwm[:, i], color='blue', legend=True, label='RWM')
         plt.axvline(T_lines[i], linewidth=2.5, color='black')
         if i==0:
                 plt.legend()
@@ -107,14 +79,13 @@ for i, p in enumerate(param_names):
         plt.subplot(6, 2, 2 + 2 * i)
         plt.ylabel(p, fontsize=20)  
         plt.plot(py_thinned_trace_amgs[:, i], alpha=0.5, color='lightseagreen')
-        plt.plot(py_thinned_trace_rwm[:, i], alpha=0.5, color='blue')
         
 
 plt.show()
 
-pair_pd = pd.DataFrame(data=py_thinned_trace_rwm, index=range(len(py_thinned_trace_rwm )), columns=param_names)
-pair_pd.head()
 
+pair_pd = pd.DataFrame(data=py_thinned_trace_amgs, index=range(len(py_thinned_trace_amgs )), columns=param_names)
+pair_pd.head()
 
 g = sns.PairGrid(pair_pd)
 g.map_diag(sns.distplot, bins=30, kde=False, hist_kws={"histtype":'bar',"rwidth":0.8,"linewidth": 0.5,
