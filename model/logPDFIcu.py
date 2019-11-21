@@ -48,6 +48,9 @@ class LogPosterior(object):
         if not(self._hospital):
             icu_sim = model_sim
             _eta = _param[-1]
+
+            if simulate:
+                return stats.nbinom(n=icu_sim, p=1/_eta).rvs()
             
             for i in range(len(self._icu_data)):
                 if icu_sim[i]==0 and self._icu_data[i] != 0:
