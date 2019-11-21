@@ -31,15 +31,19 @@ class LogPosterior(object):
 
         ### Currently ignore this bit as detection probs are hardcoded in C++
         if catchment_pop is not None:
+            if not hospital:
+                assert len(catchment_pop) == len(data)
             catchment_pop = np.array(catchment_pop,dtype=float)
             self._icu_pop = catchment_pop[self._sim_length:]/self._population \
                             if len(data)>self._fixed_length else catchment_pop/self._population
+            if not (self._icu_pop > 0.5).all():
+                print('Warning: some ICU populations look too low')
             if hospital:
                 self._hosp_pop = catchment_pop[:self._sim_length] / self._population
                 
     def icu_and_hosp_lik(self, _param, simulate=False) :
 
-        model_sim = np.array(self._simulator.Modelsim(_param))
+        model_sim = np.array(self._simulator.Modelsim(_param, self._icu_pop))
         ll = 0.0
         if not(self._hospital):
             icu_sim = model_sim

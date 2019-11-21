@@ -25,9 +25,9 @@ comp_iterations = 10000
 burnin = 40000
 thin = 30
 
-Data = np.loadtxt('data/2017_18.csv', dtype=int)
+Data = np.loadtxt('data/2017_18_with_pop.csv', dtype=int, delimiter=',')
 
-logP = LogPosterior(Data, Transform, Hospitalisation)
+logP = LogPosterior(Data[:,0], Transform, Hospitalisation, catchment_pop=Data[:,1])
 start = [0.16, 0.56, 0.0000081, -0.001, 0.00078, 10]
 X0 = np.hstack(start)
 Init_scale = np.array([0.05,0.03,0.000000051, 0.03, 0.0000015,0.5, 0.0000015, 0.5])

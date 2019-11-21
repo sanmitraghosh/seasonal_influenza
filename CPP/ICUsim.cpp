@@ -40,7 +40,7 @@ Function ICUsim:
  ------------------------------------------------------------- */
 
 
-std::vector<double> Modelsim(py::array_t<double> THETA){
+std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zetat){
   // set fixed elements:
   auto r = THETA.unchecked<1>();
   double spd     = 4;          // steps per day for the system of difference equations
@@ -51,9 +51,6 @@ std::vector<double> Modelsim(py::array_t<double> THETA){
   double sgm     = 1;          // rate of moving E1->E2; E2->I1
   double gmm     = 0.52;       // rate of moving I1->I2; I2->r
 
-  std::vector<double> zetat= {0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.9,
-	  0.76,0.89,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.92,0.91,
-	  0.92,0.92,0.91,0.9,0.86,0.72,0.92,0.92,0.89,0.73} ;  // vector of the detections of IC
   std::vector<double> fEtoIC= {0.811443284,0.151835341,0.025467901,
                          0.006698405,0.002425462,0.001061865,
                          0.000524648,0.000282547,0.000162348,
