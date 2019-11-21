@@ -10,6 +10,7 @@ import math
 import pandas as pd
 import seaborn as sns
 import scipy.stats as stats
+import sys
 
 from model.logPDFIcu import LogPosterior
 from samplers.adaptiveMetropolis import AdaptiveMetropolis
@@ -23,6 +24,11 @@ iterations = 100000
 comp_iterations = 10000
 burnin = 40000
 thin = 30
+try:
+    param_filename = sys.argv[1]
+except IndexError:
+    param_filename = './results/icu_amgs.p'
+print(param_filename)
 
 Data = np.loadtxt('data/2017_18_with_pop.csv', dtype=int, delimiter=',')
 
@@ -48,7 +54,6 @@ else:
 
 end_amgs = time.time()
 
-param_filename = './results/icu_amgs.p'
 pickle.dump(trace, open(param_filename, 'wb'))
 
 
