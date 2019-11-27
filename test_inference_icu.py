@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
-from __future__ import division
-from __future__ import print_function
-import os
 import numpy as np
-import matplotlib.pyplot as plt
 import pickle
-import time
-import math
-import pandas as pd
-import seaborn as sns
-import scipy.stats as stats
 import sys
 
 from model.logPDFIcu import LogPosterior
 from samplers.adaptiveMetropolis import AdaptiveMetropolis
-from samplers.compwise_adapt_mcmc import CompWiseMCMC
 from samplers.block_mcmc import MCMC
 from util.diagnostics import effective_sample_size
 
