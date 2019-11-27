@@ -58,17 +58,17 @@ def predict(trace):
 
 def params(trace):
     for i, p in enumerate(PARAM_NAMES):
-            # Add histogram subplot
-            plt.subplot(6, 2, 1 + 2 * i)
-            plt.ylabel('Frequency')
-            sns.kdeplot(trace[:, i], color='lightseagreen', legend=True, label='AMGS')
-            if i==0:
-                    plt.legend()
+        # Add histogram subplot
+        plt.subplot(6, 2, 1 + 2 * i)
+        plt.ylabel('Frequency')
+        sns.kdeplot(trace[:, i], color='lightseagreen', legend=True, label='AMGS')
+        if i==0:
+                plt.legend()
 
-            # Add trace subplot
-            plt.subplot(6, 2, 2 + 2 * i)
-            plt.ylabel(p, fontsize=20)  
-            plt.plot(trace[:, i], alpha=0.5, color='lightseagreen')
+        # Add trace subplot
+        plt.subplot(6, 2, 2 + 2 * i)
+        plt.ylabel(p, fontsize=20)  
+        plt.plot(trace[:, i], alpha=0.5, color='lightseagreen')
     plt.show()
 
 def correlations(trace):
