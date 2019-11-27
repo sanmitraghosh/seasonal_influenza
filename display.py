@@ -54,7 +54,7 @@ def predict(trace):
     plt.xlabel('weeks')
     plt.xlim((1, weeks))
     plt.legend()
-    plt.show()
+    return plt
 
 def params(trace):
     for i, p in enumerate(PARAM_NAMES):
@@ -69,7 +69,7 @@ def params(trace):
         plt.subplot(6, 2, 2 + 2 * i)
         plt.ylabel(p, fontsize=20)  
         plt.plot(trace[:, i], alpha=0.5, color='lightseagreen')
-    plt.show()
+    return plt
 
 def correlations(trace):
     pair_pd = pd.DataFrame(data=trace, index=range(len(trace)), columns=PARAM_NAMES)
@@ -85,7 +85,7 @@ def correlations(trace):
     for ax in g.axes[:,0]:
         ax.get_yaxis().set_label_coords(-0.265,0.5)
 
-    plt.show()
+    return plt
 
 OPTIONS = {
     'ESS': ESS,
@@ -105,6 +105,13 @@ if __name__ == '__main__':
                         help='How many iterations to discard as burnin')
     parser.add_argument('-t', '--thin', type=int, default=30,
                         help='How to thin the chain')
+    parser.add_argument('-o', '--output', default=None,
+                        help='File to output to (otherwise shown on screen). Ignored for ESS.')
     args = parser.parse_args()
     trace = init(args)
-    OPTIONS[args.display](trace)
+    plot = OPTIONS[args.display](trace)
+    if plot is not None:
+        if args.output is None:
+            plt.show()
+        else:
+            plt.savefig(args.output)
