@@ -16,11 +16,11 @@ def init(args):
     return py_thinned_trace_amgs
 
 
-def ESS(trace):
+def ESS(trace, args):
     amgs_ess = effective_sample_size(trace)
     print('ESS AMGS: ', amgs_ess)
 
-def predict(trace):
+def predict(trace, args):
     sns.set_context("paper", font_scale=1)
     sns.set(rc={"figure.figsize":(8,6),"font.size":10,"axes.titlesize":20,"axes.labelsize":17,
                "xtick.labelsize":6, "ytick.labelsize":6},style="white")
@@ -33,9 +33,13 @@ def predict(trace):
     Transform = True
     Hospitalisation = False
     logP = LogPosterior(true_values, Transform, Hospitalisation, catchment_pop=Data[:,1])
-    for ind in random.sample(range(0, np.size(trace, axis=0)), ppc_samples): 
+    #for ind in random.sample(range(0, np.size(trace, axis=0)), ppc_samples): 
+    for ind in range(trace.shape[0]):
         ppc_sol = logP.posterior_draws(trace[ind, :])
         new_values_amgs.append(ppc_sol.copy())
+
+    if args.output is not None:
+        pickle.dump(new_values_amgs, open(args.output + '.p', 'wb'))
 
     new_values_amgs = np.array(new_values_amgs)
     median_values_amgs = np.percentile(new_values_amgs,q=50,axis=0)
@@ -56,7 +60,7 @@ def predict(trace):
     plt.legend()
     return plt
 
-def params(trace):
+def params(trace, args):
     for i, p in enumerate(PARAM_NAMES):
         # Add histogram subplot
         plt.subplot(6, 2, 1 + 2 * i)
@@ -71,7 +75,7 @@ def params(trace):
         plt.plot(trace[:, i], alpha=0.5, color='lightseagreen')
     return plt
 
-def correlations(trace):
+def correlations(trace, args):
     pair_pd = pd.DataFrame(data=trace, index=range(len(trace)), columns=PARAM_NAMES)
     pair_pd.head()
 
@@ -109,7 +113,7 @@ if __name__ == '__main__':
                         help='File to output to (otherwise shown on screen). Ignored for ESS.')
     args = parser.parse_args()
     trace = init(args)
-    plot = OPTIONS[args.display](trace)
+    plot = OPTIONS[args.display](trace, args)
     if plot is not None:
         if args.output is None:
             plt.show()
