@@ -10,9 +10,9 @@ from util.diagnostics import effective_sample_size
 
 Transform = True
 Hospitalisation = False
-iterations = 100000
-burnin = 40000
-thin = 30
+iterations = 200000
+burnin = 4000
+thin = 1
 
 def get_output_filename():
     try:
