@@ -50,7 +50,10 @@ class LogPosterior(object):
             _eta = _param[-1]
 
             if simulate:
-                return stats.nbinom(n=icu_sim, p=1/_eta).rvs()
+                assert (icu_sim >= 0).all()
+                observed_data = icu_sim
+                observed_data[icu_sim > 0] = stats.nbinom(n=icu_sim[icu_sim > 0], p=1/_eta).rvs()
+                return observed_data
             
             for i in range(len(self._icu_data)):
                 if icu_sim[i]==0 and self._icu_data[i] != 0:
