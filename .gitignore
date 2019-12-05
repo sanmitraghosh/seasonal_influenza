@@ -6,3 +6,4 @@ results
 
 data/**
 !data/example.csv
+*.swo
