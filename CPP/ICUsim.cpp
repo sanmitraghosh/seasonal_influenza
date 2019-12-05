@@ -114,7 +114,7 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
       for (int r=0; r<(R+1); r++){
         cumIC+=NNI[s-r]*fEtoIC[r];
       }
-      NIC[s] = cumIC*zetat[s]*pIC;
+      NIC[s] = cumIC*zetat.at(s)*pIC;
       // obsevrations
       double sizeICs = NIC[s]/(eta-1); 
       yIC[s] = sizeICs; //R::rnbinom(sizeICs, 1/(eta) );
