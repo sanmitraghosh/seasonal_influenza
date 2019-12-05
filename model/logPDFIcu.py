@@ -36,6 +36,12 @@ class LogPosterior(object):
             catchment_pop = np.array(catchment_pop,dtype=float)
             self._icu_pop = catchment_pop[self._sim_length:]/self._population \
                             if len(data)>self._fixed_length else catchment_pop/self._population
+            if len(self._icu_pop) < self._fixed_length:
+                self._icu_pop = np.concatenate((
+                    self._icu_pop,
+                    [self._icu_pop.mean()] * (self._fixed_length - len(self._icu_pop))
+                ))
+            assert len(self._icu_pop) == self._fixed_length
             if not (self._icu_pop > 0.5).all():
                 print('Warning: some ICU populations look too low')
             if hospital:
