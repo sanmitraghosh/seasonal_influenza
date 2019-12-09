@@ -22,10 +22,19 @@ def get_output_filename():
     return param_filename
 
 def read_data(in_file):
-    return np.loadtxt(in_file, dtype=int, delimiter=',')
+    """Reads data to use from a csv file.
+
+    Params:
+        in_file: name of the file to use.
+
+    Returns:
+        2-tuple of (admissions_counts, catchment_populations)
+    """
+    np_data = np.loadtxt(in_file, dtype=int, delimiter=',')
+    return (np_data[:,0], np_data[:,1])
 
 def run_MCMC(data):
-    logP = LogPosterior(data[:,0], Transform, Hospitalisation, catchment_pop=data[:,1])
+    logP = LogPosterior(data[0], Transform, Hospitalisation, catchment_pop=data[1])
     start = [0.16, 0.56, 0.0000081, -0.001, 0.00078, 10]
     X0 = np.hstack(start)
     Init_scale = np.array([0.05,0.03,0.000000051, 0.03, 0.0000015,0.5, 0.0000015, 0.5])
