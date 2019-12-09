@@ -29,10 +29,9 @@ class LogPosterior(object):
         self._population = 55_977_178
         self._transform = transform
 
-        ### Currently ignore this bit as detection probs are hardcoded in C++
         if catchment_pop is not None:
             if not hospital:
-                assert len(catchment_pop) == len(data)
+                assert len(catchment_pop) >= len(data)
             catchment_pop = np.array(catchment_pop,dtype=float)
             self._icu_pop = catchment_pop[self._sim_length:]/self._population \
                             if len(data)>self._fixed_length else catchment_pop/self._population
