@@ -4,7 +4,7 @@ from test_inference_icu import read_data, run_MCMC, write_trace, thin_trace
 if __name__ == '__main__':
     in_file = 'data/2017_18_with_pop.csv'
     data = read_data(in_file)
-    for i in range(1, 34, 2):
+    for i in range(1, 34):
         print('For week {}'.format(i))
         data_to_use = (data[0][0:i], data[1][0:i])
         assert len(data_to_use[0]) == i
