@@ -88,8 +88,12 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
           ((time>=131)&&(time<=140))||((time>=179)&&(time<=196))){
         boolK=1;
       }
-      mat(t,1) = mat(t-1,1) - dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
-      mat(t,2) = mat(t-1,2) + dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N) - dt*sgm*mat(t-1,2);
+	  double infected = dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
+	  if (infected > mat(t-1,1)) {
+	 	infected = mat(t-1,1);
+	  }
+      mat(t,1) = mat(t-1,1) - infected;
+      mat(t,2) = mat(t-1,2) + infected - dt*sgm*mat(t-1,2);
       mat(t,3) = mat(t-1,3) + dt*sgm*mat(t-1,2) - dt*sgm*mat(t-1,3);
       mat(t,4) = mat(t-1,4) + dt*sgm*mat(t-1,3) - dt*gmm*mat(t-1,4);
       mat(t,5) = mat(t-1,5) + dt*gmm*mat(t-1,4) - dt*gmm*mat(t-1,5);
