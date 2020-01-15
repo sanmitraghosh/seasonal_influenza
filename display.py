@@ -33,13 +33,19 @@ def predict(trace, args):
     Transform = True
     Hospitalisation = False
     logP = LogPosterior(true_values, Transform, Hospitalisation, catchment_pop=Data[:,1])
+    output = []
     #for ind in random.sample(range(0, np.size(trace, axis=0)), ppc_samples): 
     for ind in range(trace.shape[0]):
         ppc_sol = logP.posterior_draws(trace[ind, :])
         new_values_amgs.append(ppc_sol.copy())
+        if args.include_params:
+            out = list(trace[ind,:]) + list(new_values_amgs[-1])
+            output.append(out)
+        else:
+            output.append(new_values_amgs[-1])
 
     if args.output is not None:
-        pickle.dump(new_values_amgs, open(args.output + '.p', 'wb'))
+        pickle.dump(output, open(args.output + '.p', 'wb'))
 
     new_values_amgs = np.array(new_values_amgs)
     median_values_amgs = np.percentile(new_values_amgs,q=50,axis=0)
@@ -111,6 +117,9 @@ if __name__ == '__main__':
                         help='How to thin the chain')
     parser.add_argument('-o', '--output', default=None,
                         help='File to output to (otherwise shown on screen). Ignored for ESS.')
+    parser.add_argument('-p', '--include-params', action='store_true',
+                        help='For predict only: if the paramater values used to in each '
+                             'simulation should be included in the pickle output.')
     args = parser.parse_args()
     trace = init(args)
     plot = OPTIONS[args.display](trace, args)
