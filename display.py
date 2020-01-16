@@ -27,7 +27,7 @@ def predict(trace, args):
 
     ppc_samples = 1000
     new_values_amgs = []
-    Data = np.loadtxt('data/2017_18_with_pop.csv', dtype=int, delimiter=',')
+    Data = np.loadtxt('data/2018_19_with_pop.csv', dtype=int, delimiter=',')
     true_values = Data[:,0]
     weeks = len(true_values)
     Transform = True
