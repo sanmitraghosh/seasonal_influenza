@@ -6,7 +6,7 @@ if __name__ == '__main__':
     data = read_data(in_file)
     for i in range(1, 34):
         print('For week {}'.format(i))
-        data_to_use = (data[0][0:i], data[1][0:i])
+        data_to_use = (data[0][0:i], data[1])
         assert len(data_to_use[0]) == i
         out_file = 'results/forecast/week{}.p'.format(i)
         trace = run_MCMC(data_to_use)
