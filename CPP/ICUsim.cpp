@@ -105,11 +105,10 @@ std::array<double, lobs> Modelsim(py::array_t<double> THETA, std::vector<double>
     // number of new infections by day
     std::array<double, lobs> NNI;
     for (size_t day=0; day<(lobs); day++){
-      NNI[day] = mat(day*spd,1) - mat((day+1)*spd,1);
+      NNI.at(day) = mat(day*spd,1) - mat((day+1)*spd,1);
     }
     
     // number of new detected IC admissions obtained via convolution
-    // and Negbinom
     std::array<double, lobs> NIC;
     for (size_t s = 0; s<(lobs); s++){
       double cumIC = 0;
@@ -117,10 +116,9 @@ std::array<double, lobs> Modelsim(py::array_t<double> THETA, std::vector<double>
       for (size_t r = 0; r <= days_to_convolve; r++){
         cumIC += NNI.at(s-r) * fEtoIC.at(r);
       }
-      NIC[s] = cumIC*zetat.at(s)*pIC;
-      // obsevrations
-      double sizeICs = NIC[s]/(eta-1); 
-      yIC[s] = sizeICs; //R::rnbinom(sizeICs, 1/(eta) );
+      NIC.at(s) = cumIC*zetat.at(s)*pIC;
+      double sizeICs = NIC.at(s) / (eta-1); 
+      yIC.at(s) = sizeICs; //R::rnbinom(sizeICs, 1/(eta) );
     }
   
   
