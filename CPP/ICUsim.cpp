@@ -21,7 +21,7 @@ namespace py = pybind11;
 Function ICUsim:
 1) approximates on intervals dt the system of equation of a SEEIIR model 
  with time varying transmission, 
-2) computes, by deterministic convolution, the weekly number of 
+2) computes, by deterministic convolution, the daily number of 
  ICU admissions
 3) simulates the dataset with negative binomial noise
 
@@ -29,46 +29,47 @@ Function ICUsim:
  - beta   : transmission rate
  - pi    : the proportion of initially immune;
  - iota  : the proportion of initially infected/infectious;
- - kappa : the factor for school holidays;
+ - kappa : the factor for lockdown;
  - pIC   : the probability of IC admissions given infection;
  - eta   : the overdispersion parameter.
  
  gives as output:
- - yIC   : an integer vector (usually of size 33) 
- for the weekly number of IC admissions;
+ - yIC   : an integer vector for the expected daily number of IC admissions;
  
  ------------------------------------------------------------- */
 
 
 std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zetat){
   // set fixed elements:
-  auto r = THETA.unchecked<1>();
-  double spd     = 4;          // steps per day for the system of difference equations
-  double begin   = 0;          // day of the begin of the epidemic
-  double end     = 231;        // day of the end of the epidemic
-  double dt      = 1/spd;      // time increment
-  double N       = 55977178;   // population size
-  double sgm     = 1;          // rate of moving E1->E2; E2->I1
-  double gmm     = 0.52;       // rate of moving I1->I2; I2->r
+  const auto r = THETA.unchecked<1>();
+  const double spd     = 4;          // steps per day for the system of difference equations
+  const double begin   = 0;          // day of the begin of the epidemic
+  const double end     = 90;        // day of the end of the epidemic
+  const double dt      = 1/spd;      // time increment
+  const double N       = 66435550;   // population size
+  const double mean_latent_period = 4;		// in days
+  const double mean_infectious_period = 4.6;
+  const double sgm     = 2/mean_latent_period;          // rate of moving E1->E2; E2->I1
+  const double gmm     = 2/mean_infectious_period;       // rate of moving I1->I2; I2->r
 
-  std::vector<double> fEtoIC= {0.811443284,0.151835341,0.025467901,
+  const std::vector<double> fEtoIC= {0.811443284,0.151835341,0.025467901,
                          0.006698405,0.002425462,0.001061865,
                          0.000524648,0.000282547,0.000162348,
-                         0.000098200};        // probability of v weeks elapsing between 
+                         0.000098200};        // probability of v days elapsing between 
                                               // infection and IC admissions   
-  int sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
-  int lobs   = (sizemat/(7*spd));   // length of the final observations (weeks of the epidemics)
+  const int sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
+  const int lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
  
   // output vector
   std::vector<double> yIC(lobs);
   
   // parameters
-  double beta  = r(0);
-  double pi    = r(1);
-  double iota  = r(2);
-  double kappa = r(3);
-  double pIC   = r(4);
-  double eta   = r(5);
+  const double beta  = r(0);
+  const double pi    = r(1);
+  const double iota  = r(2);
+  const double kappa = r(3);
+  const double pIC   = r(4);
+  const double eta   = r(5);
  
     // set initial values of the system of difference equations:
     Eigen::MatrixXd mat(sizemat, 7);
@@ -81,11 +82,10 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     mat(0,5)=(iota/4)*N;
     mat(0,6)=pi*N; 
     for (int t=1;t<sizemat;t++){
-      // boolean that defines when to apply the holiday effect
+      // boolean that defines when to apply the lockdown effect
       // when 0 there is no effect, when 1 there is the multiplier (1+k)
       double boolK =0 ;
-      if (((time>=19)&&(time<=28))||((time>=75)&&(time<=92))||
-          ((time>=131)&&(time<=140))||((time>=179)&&(time<=196))){
+      if (time >= 34) {
         boolK=1;
       }
 	  double infected = dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
@@ -102,11 +102,10 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
       mat(t,0) = time;
     }
     
-    // number of new infections by week
-    int thin=(7*spd);
+    // number of new infections by day
     std::vector<double> NNI(lobs);
-    for (int s=0;s<(lobs);s++){
-      NNI[s] = mat(s*thin,1) - mat((s+1)*thin,1);
+    for (int day=0; day<(lobs); day++){
+      NNI[day] = mat(day*spd,1) - mat((day+1)*spd,1);
     }
     
     // number of new detected IC admissions obtained via convolution
@@ -114,7 +113,7 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     std::vector<double> NIC(lobs);
     for (int s=0;s<(lobs);s++){
       double cumIC=0;
-      int R=std::min(s, 9);
+      const int R = std::min(s, 9);
       for (int r=0; r<(R+1); r++){
         cumIC+=NNI[s-r]*fEtoIC[r];
       }
