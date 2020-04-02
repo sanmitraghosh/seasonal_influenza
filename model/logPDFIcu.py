@@ -26,7 +26,7 @@ class LogPosterior(object):
             self.n_params = 6
         self._hospital = hospital
         self._realdata = realdata
-        self._population = 55_977_178
+        self._population = 66_435_550
         self._transform = transform
 
         if catchment_pop is not None:
