@@ -7,3 +7,8 @@ results
 data/**
 !data/example.csv
 *.swo
+
+# Ignore binary files
+CPP/build/**
+CPP/*.so
+CPP/.nfs*
