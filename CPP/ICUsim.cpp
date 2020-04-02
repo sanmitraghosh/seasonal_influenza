@@ -113,7 +113,7 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     std::vector<double> NIC(lobs);
     for (size_t s=0;s<(lobs);s++){
       double cumIC=0;
-      const size_t R = std::min(s, (size_t)9);
+      const size_t R = std::min(s, fEtoIC.size());
       for (size_t r=0; r<(R+1); r++){
         cumIC+=NNI[s-r]*fEtoIC[r];
       }
