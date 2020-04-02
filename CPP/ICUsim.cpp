@@ -57,8 +57,8 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
                          0.000524648,0.000282547,0.000162348,
                          0.000098200};        // probability of v days elapsing between 
                                               // infection and IC admissions   
-  const int sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
-  const int lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
+  const size_t sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
+  const size_t lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
  
   // output vector
   std::vector<double> yIC(lobs);
@@ -81,7 +81,7 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     mat(0,4)=(iota/4)*N;
     mat(0,5)=(iota/4)*N;
     mat(0,6)=pi*N; 
-    for (int t=1;t<sizemat;t++){
+    for (size_t t=1;t<sizemat;t++){
       // boolean that defines when to apply the lockdown effect
       // when 0 there is no effect, when 1 there is the multiplier (1+k)
       double boolK =0 ;
@@ -104,17 +104,17 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     
     // number of new infections by day
     std::vector<double> NNI(lobs);
-    for (int day=0; day<(lobs); day++){
+    for (size_t day=0; day<(lobs); day++){
       NNI[day] = mat(day*spd,1) - mat((day+1)*spd,1);
     }
     
     // number of new detected IC admissions obtained via convolution
     // and Negbinom
     std::vector<double> NIC(lobs);
-    for (int s=0;s<(lobs);s++){
+    for (size_t s=0;s<(lobs);s++){
       double cumIC=0;
-      const int R = std::min(s, 9);
-      for (int r=0; r<(R+1); r++){
+      const size_t R = std::min(s, (size_t)9);
+      for (size_t r=0; r<(R+1); r++){
         cumIC+=NNI[s-r]*fEtoIC[r];
       }
       NIC[s] = cumIC*zetat.at(s)*pIC;
