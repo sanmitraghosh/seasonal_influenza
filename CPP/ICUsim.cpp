@@ -67,7 +67,7 @@ const std::array fEtoIC = {
 const size_t sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
 const size_t lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
 
-std::array<double, lobs> Modelsim(py::array_t<double> THETA, std::vector<double> zetat){
+std::array<double, lobs> Modelsim(py::array_t<double> THETA) {
   // set fixed elements:
   const auto r = THETA.unchecked<1>();
  
@@ -127,7 +127,7 @@ std::array<double, lobs> Modelsim(py::array_t<double> THETA, std::vector<double>
       for (size_t r = 0; r <= days_to_convolve; r++){
         cumIC += NNI.at(s-r) * fEtoIC.at(r);
       }
-      NIC.at(s) = cumIC*zetat.at(s)*pIC;
+      NIC.at(s) = cumIC * pIC;
       double sizeICs = NIC.at(s) / (eta-1); 
       yIC.at(s) = sizeICs; //R::rnbinom(sizeICs, 1/(eta) );
     }
