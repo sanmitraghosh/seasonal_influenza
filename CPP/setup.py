@@ -17,7 +17,7 @@ class get_pybind_include(object):
         import pybind11
         return pybind11.get_include(self.user)
 
-cpp_args = ['-std=c++11']
+cpp_args = ['-std=c++17']
 
 ext_modules = [
     Extension(

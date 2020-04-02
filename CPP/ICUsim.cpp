@@ -5,7 +5,6 @@ using boost::math::negative_binomial; // typedef provides default type is double
 using  ::boost::math::pdf; // Probability mass function.
 */
 #include <iostream>
-#include <vector>
 #include <unordered_set>
 #include <algorithm>
 #include <string>
@@ -39,29 +38,30 @@ Function ICUsim:
  ------------------------------------------------------------- */
 
 
-std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zetat){
+const double spd     = 4;          // steps per day for the system of difference equations
+const double begin   = 0;          // day of the begin of the epidemic
+const double end     = 90;        // day of the end of the epidemic
+const double dt      = 1/spd;      // time increment
+const double N       = 66435550;   // population size
+const double mean_latent_period = 4;		// in days
+const double mean_infectious_period = 4.6;
+const double sgm     = 2/mean_latent_period;          // rate of moving E1->E2; E2->I1
+const double gmm     = 2/mean_infectious_period;       // rate of moving I1->I2; I2->r
+
+// probability of v days elapsing between infection and IC admissions   
+const std::array fEtoIC = {
+		0.811443284, 0.151835341, 0.025467901,  0.006698405, 0.002425462, 0.001061865, 
+		0.000524648, 0.000282547, 0.000162348,  0.000098200
+};
+const size_t sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
+const size_t lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
+
+std::array<double, lobs> Modelsim(py::array_t<double> THETA, std::vector<double> zetat){
   // set fixed elements:
   const auto r = THETA.unchecked<1>();
-  const double spd     = 4;          // steps per day for the system of difference equations
-  const double begin   = 0;          // day of the begin of the epidemic
-  const double end     = 90;        // day of the end of the epidemic
-  const double dt      = 1/spd;      // time increment
-  const double N       = 66435550;   // population size
-  const double mean_latent_period = 4;		// in days
-  const double mean_infectious_period = 4.6;
-  const double sgm     = 2/mean_latent_period;          // rate of moving E1->E2; E2->I1
-  const double gmm     = 2/mean_infectious_period;       // rate of moving I1->I2; I2->r
-
-  const std::vector<double> fEtoIC= {0.811443284,0.151835341,0.025467901,
-                         0.006698405,0.002425462,0.001061865,
-                         0.000524648,0.000282547,0.000162348,
-                         0.000098200};        // probability of v days elapsing between 
-                                              // infection and IC admissions   
-  const size_t sizemat=((end-begin)*spd)+1;  // epidemic model matrix size
-  const size_t lobs   = (sizemat/spd);   // length of the final observations (days of the epidemics)
  
-  // output vector
-  std::vector<double> yIC(lobs);
+  // output array
+  std::array<double, lobs> yIC;
   
   // parameters
   const double beta  = r(0);
@@ -103,19 +103,19 @@ std::vector<double> Modelsim(py::array_t<double> THETA, std::vector<double> zeta
     }
     
     // number of new infections by day
-    std::vector<double> NNI(lobs);
+    std::array<double, lobs> NNI;
     for (size_t day=0; day<(lobs); day++){
       NNI[day] = mat(day*spd,1) - mat((day+1)*spd,1);
     }
     
     // number of new detected IC admissions obtained via convolution
     // and Negbinom
-    std::vector<double> NIC(lobs);
-    for (size_t s=0;s<(lobs);s++){
-      double cumIC=0;
-      const size_t R = std::min(s, fEtoIC.size());
-      for (size_t r=0; r<(R+1); r++){
-        cumIC+=NNI[s-r]*fEtoIC[r];
+    std::array<double, lobs> NIC;
+    for (size_t s = 0; s<(lobs); s++){
+      double cumIC = 0;
+      const size_t days_to_convolve = std::min(s, fEtoIC.size());
+      for (size_t r = 0; r <= days_to_convolve; r++){
+        cumIC += NNI.at(s-r) * fEtoIC.at(r);
       }
       NIC[s] = cumIC*zetat.at(s)*pIC;
       // obsevrations
