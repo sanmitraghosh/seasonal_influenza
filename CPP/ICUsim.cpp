@@ -99,7 +99,7 @@ std::array<double, lobs> Modelsim(py::array_t<double> THETA) {
       if (time >= 34) {
         boolK=1;
       }
-	  double infected = dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
+	  double infected = dt*beta*(boolK*kappa)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
 	  if (infected > mat(t-1,1)) {
 	 	infected = mat(t-1,1);
 	  }

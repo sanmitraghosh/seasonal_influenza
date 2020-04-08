@@ -83,7 +83,7 @@ std::vector<double> Modelsim(py::array_t<double> THETA){
   double pH    = r(6);
   double etaH  = r(7);
   // parameter existence check
-  if( (pi+iota>=1)||(beta<=0)||(kappa<=-1)||(pH>=1)||(pH<=0)||(etaH<=1)||(pIC>=1)||(pIC<=0)||(etaIC<=1)){
+  if( (pi+iota>=1)||(beta<=0)||(kappa<0)||(pH>=1)||(pH<=0)||(etaH<=1)||(pIC>=1)||(pIC<=0)||(etaIC<=1)){
     
 	for(unsigned i=0;i<yALL.size();i++){
 	    yALL[i] = std::numeric_limits<int>::quiet_NaN();}
@@ -106,8 +106,8 @@ std::vector<double> Modelsim(py::array_t<double> THETA){
           ((time>=131)&&(time<=140))||((time>=179)&&(time<=196))){
         boolK=1;
       }
-      mat(t,1) = mat(t-1,1) - dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
-      mat(t,2) = mat(t-1,2) + dt*beta*(boolK*kappa+1)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N) - dt*sgm*mat(t-1,2);
+      mat(t,1) = mat(t-1,1) - dt*beta*(boolK*kappa)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N);
+      mat(t,2) = mat(t-1,2) + dt*beta*(boolK*kappa)*mat(t-1,1)*((mat(t-1,4)+mat(t-1,5))/N) - dt*sgm*mat(t-1,2);
       mat(t,3) = mat(t-1,3) + dt*sgm*mat(t-1,2) - dt*sgm*mat(t-1,3);
       mat(t,4) = mat(t-1,4) + dt*sgm*mat(t-1,3) - dt*gmm*mat(t-1,4);
       mat(t,5) = mat(t-1,5) + dt*gmm*mat(t-1,4) - dt*gmm*mat(t-1,5);

@@ -4,6 +4,15 @@ import scipy.stats as stats
 from CPP import icu
 from CPP import icuh
 
+N = 66_435_550
+PRIORS = {
+    'beta': stats.gamma(32.6, 3.1),
+    'pi': None,
+    'iota': stats.uniform(5/N, 100/N),
+    'kappa': stats.beta(51.4, 47.4),
+    'pIC': stats.beta(5.19, 84.6),
+    'etaIC': stats.uniform(0.1, 100.0),
+}
 
 class LogPosterior(object):
     _fixed_length = 33
@@ -109,41 +118,48 @@ class LogPosterior(object):
 
         Tx_THETA = transformed_parameters
         Utx_beta  = np.exp(Tx_THETA[0])
-        Utx_pi    = np.exp(Tx_THETA[1])/(np.exp(Tx_THETA[1])+1)
-        Utx_iota  = np.exp(Tx_THETA[2])/((np.exp(Tx_THETA[1])+1)*(np.exp(Tx_THETA[2])+1))
-        Utx_kappa = np.exp(Tx_THETA[3]) - 1
+        Utx_iota  = np.exp(Tx_THETA[2])/(np.exp(Tx_THETA[2])+1))
+        Utx_kappa = np.exp(Tx_THETA[3])
         Utx_pIC   = np.exp(Tx_THETA[4])/(np.exp(Tx_THETA[4])+1)
         Utx_etaIC   = np.exp(Tx_THETA[5])
         if self._hospital:
             Utx_pH   = np.exp(Tx_THETA[6])/(np.exp(Tx_THETA[6])+1)
             Utx_etaH   = np.exp(Tx_THETA[7])
-            return np.array([Utx_beta, Utx_pi, Utx_iota, Utx_kappa, Utx_pIC, Utx_etaIC, Utx_pH, Utx_etaH])
+            return np.array([Utx_beta, Utx_iota, Utx_kappa, Utx_pIC, Utx_etaIC, Utx_pH, Utx_etaH])
         else:
-            return np.array([Utx_beta, Utx_pi, Utx_iota, Utx_kappa, Utx_pIC, Utx_etaIC])
+            return np.array([Utx_beta, Utx_iota, Utx_kappa, Utx_pIC, Utx_etaIC])
 
     def _transform_from_constraint(self, untransformed_parameters):
         
         Utx_THETA = untransformed_parameters
         tx_beta  = np.log(Utx_THETA[0])
-        tx_pi    = np.log( Utx_THETA[1]/(1 - Utx_THETA[1]) )
-        tx_iota  = np.log( Utx_THETA[2]/(1 - (Utx_THETA[1] + Utx_THETA[2]) ) )
-        tx_kappa = np.log(Utx_THETA[3]+1)
+        tx_iota  = np.log( Utx_THETA[2]/(1 - Utx_THETA[2]))
+        tx_kappa = np.log(Utx_THETA[3])
         tx_pIC   = np.log(Utx_THETA[4]/(1 - Utx_THETA[4]))
         tx_etaIC   = np.log(Utx_THETA[5])
         if self._hospital:
             tx_pH   = np.log(Utx_THETA[6]/(1 - Utx_THETA[6]))
             tx_etaH   = np.log(Utx_THETA[7])
-            return np.array([tx_beta, tx_pi, tx_iota, tx_kappa, tx_pIC, tx_etaIC, tx_pH, tx_etaH])
+            return np.array([tx_beta, tx_iota, tx_kappa, tx_pIC, tx_etaIC, tx_pH, tx_etaH])
         else:
-            return np.array([tx_beta, tx_pi, tx_iota, tx_kappa, tx_pIC, tx_etaIC])
+            return np.array([tx_beta, tx_iota, tx_kappa, tx_pIC, tx_etaIC])
+
+    def _calc_log_prior(THETA):
+        val = 0
+        for i, dist in PRIORS.values():
+            if dist is None:
+                continue
+            val += dist.logpdf(THETA[i])
+        return val
 
     def __call__(self, parameters):
-        
+        # Hardcode pi to 0
+        parameters[1] = 0
+
         if self._transform:
             _Tx_THETA = parameters.copy()
             THETA = self._transform_to_constraint(_Tx_THETA)
             _Tx_beta  = _Tx_THETA[0]
-            _Tx_pi    = _Tx_THETA[1]
             _Tx_iota  = _Tx_THETA[2]
             _Tx_kappa = _Tx_THETA[3]
             _Tx_pIC   = _Tx_THETA[4]
@@ -155,7 +171,6 @@ class LogPosterior(object):
             THETA = parameters.copy()
 
         beta  = THETA[0]
-        pi    = THETA[1]
         iota  = THETA[2]
         kappa = THETA[3]
         pIC   = THETA[4]
@@ -166,51 +181,25 @@ class LogPosterior(object):
 
         # Get the ICU/H likelihood
         
-        if ( (pi+iota>=1.) or (beta<=0.) or (kappa<=-1.) or \
+        if  (beta<=0.) or \
             (pIC>=1.) or (pIC<=0.) or (etaIC<=1.) or \
             (self._hospital and pH>=1.) or (self._hospital and pH<=0.) or \
-            (self._hospital and etaH<=1.)):
+            (self._hospital and etaH<=1.):
 
             log_likelihood = np.inf
         else:
             log_likelihood = self.icu_and_hosp_lik(THETA)
         
         # Now calculate the necessary priors for ODE model params
+        log_prior = self._calc_log_prior(THETA)
 
         if self._transform:
-            logPrior_beta = stats.uniform.logpdf(beta,0.,4.) + _Tx_beta
-            logPrior_pi = stats.beta.logpdf(pi,37.5,62.5) + \
-                            stats.uniform.logpdf(iota,0.,1e-1) +\
-                            ((_Tx_pi)-2*np.log((1+np.exp(_Tx_pi)))) +\
-                             ((_Tx_iota)-(2*np.log(1+np.exp(_Tx_iota))+np.log(1+np.exp(_Tx_pi)))) 
-
-            logPrior_iota = stats.uniform.logpdf(iota,0.,1e-1) +\
-                            ((_Tx_iota)-(2*np.log(1+np.exp(_Tx_iota))+np.log(1+np.exp(_Tx_pi)))) 
-            logPrior_kappa = stats.norm.logpdf(_Tx_kappa, 0, 1) 
-            logPrior_pIC = stats.uniform.logpdf(pIC, 0., 1.) +\
-                            ((_Tx_pIC)-(2*np.log(1+np.exp(_Tx_pIC))))
-            logPrior_etaIC = stats.uniform.logpdf(etaIC, 1.0, 100.0) + _Tx_etaIC 
+            # Adjust due to change of variables
+            log_prior += (_Tx_beta + _Tx_iota - 2 * np.log(np.exp(_Tx_iota) + 1) +
+                          _Tx_kappa + _Tx_pIC - 2 * np.log(np.exp(_Tx_iota) + 1) +
+                          _Tx_etaIC)
             if self._hospital:
-                logPrior_pH = stats.uniform.logpdf(pH, 0., 1.) +\
-                            ((_Tx_pH)-(2*np.log(1+np.exp(_Tx_pH))))
-                logPrior_etaH = stats.uniform.logpdf(etaH, 1.0, 100.0) + _Tx_etaH         
-        else:
-
-            logPrior_beta = stats.uniform.logpdf(beta,0.,4.)
-            logPrior_pi = stats.beta.logpdf(pi,37.5,62.5)   
-            logPrior_iota = stats.uniform.logpdf(iota, 0., 1e-1)
-            logPrior_kappa = stats.lognorm.logpdf(kappa+1, s=1., scale=1.) 
-            logPrior_pIC = stats.uniform.logpdf(pIC, 0., 1.)
-            logPrior_etaIC = stats.uniform.logpdf(etaIC, 1.0, 100.0)
-            if self._hospital:
-                logPrior_pH = stats.uniform.logpdf(pH, 0., 1.)
-                logPrior_etaH = stats.uniform.logpdf(etaH, 1.0, 100.0)
-        if self._hospital:
-            log_prior = logPrior_beta + logPrior_pi + logPrior_iota + logPrior_kappa + \
-                        logPrior_pIC + logPrior_etaIC + logPrior_pH + logPrior_etaH 
-        else:
-            log_prior = logPrior_beta + logPrior_pi + logPrior_iota + logPrior_kappa + \
-                        logPrior_pIC + logPrior_etaIC
+                raise NotImplemented("Hospital priors")
 
         return log_likelihood + log_prior
                    
