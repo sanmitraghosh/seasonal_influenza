@@ -16,7 +16,7 @@ PRIORS = {
 
 class LogPosterior(object):
     _fixed_length = 33
-    def __init__(self, data, transform=False, hospital=False, realdata = False, catchment_pop = None):
+    def __init__(self, data, transform=False, hospital=False, realdata = False):
         
         self._sim_length = int(len(data)/2)
         if hospital:
@@ -38,26 +38,10 @@ class LogPosterior(object):
         self._population = 66_435_550
         self._transform = transform
 
-        if catchment_pop is not None:
-            if not hospital:
-                assert len(catchment_pop) >= len(data)
-            catchment_pop = np.array(catchment_pop,dtype=float)
-            self._icu_pop = catchment_pop[self._sim_length:]/self._population \
-                            if len(data)>self._fixed_length else catchment_pop/self._population
-            if len(self._icu_pop) < self._fixed_length:
-                self._icu_pop = np.concatenate((
-                    self._icu_pop,
-                    [self._icu_pop.mean()] * (self._fixed_length - len(self._icu_pop))
-                ))
-            assert len(self._icu_pop) == self._fixed_length
-            if not (self._icu_pop > 0.5).all():
-                print('Warning: some ICU populations look too low')
-            if hospital:
-                self._hosp_pop = catchment_pop[:self._sim_length] / self._population
                 
     def icu_and_hosp_lik(self, _param, simulate=False) :
 
-        model_sim = np.array(self._simulator.Modelsim(_param, self._icu_pop))
+        model_sim = np.array(self._simulator.Modelsim(_param))
         ll = 0.0
         if not(self._hospital):
             icu_sim = model_sim
