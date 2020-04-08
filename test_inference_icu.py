@@ -14,12 +14,15 @@ iterations = 200000
 burnin = 4000
 thin = 1
 
-def get_output_filename():
+def get_arg(n, default=None):
     try:
-        param_filename = sys.argv[1]
+        arg = sys.argv[n]
     except IndexError:
-        param_filename = './results/icu_amgs.p'
-    return param_filename
+        if default is None:
+            print("ERROR: need argument")
+        else:
+            return default
+    return arg
 
 def read_data(in_file):
     """Reads data to use from a csv file.
@@ -65,10 +68,10 @@ def thin_trace(trace):
 
 
 if __name__ == '__main__':
-    in_file = 'data/2017_18_with_pop.csv'
+    in_file = get_arg(1, 'data/2017_18_with_pop.csv')
     data = read_data(in_file)
     trace = run_MCMC(data)
-    write_trace(trace, get_output_filename())
+    write_trace(trace, get_output_filename(2, './results/icu_amgs.p'))
     thinned_trace = thin_trace(trace)
     ess = np.mean(effective_sample_size(thinned_trace))
     print('ESS AMGS: ', ess)
